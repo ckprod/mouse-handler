@@ -4,6 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>mouse-handler samples</title>
     <link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="sample.css">
 </head>
 <body>
 	
@@ -15,10 +16,17 @@
 	</p>
 	</div>
 	<h4>Sample</h4>
-
 	
-	<script src='mouse-handler.min.js'></script>
+	<div id="sample" class="sample">
+		<div id="drag" class="drag">Click me or drag me around</div>
+	</div>
+	<div id="status" class="status">
+		status:
+	</div>
+	
+	<script src='mouse-handler.sample.js'></script>
 	<script>
+		new SampleDragClick(document.getElementById('drag'), document.getElementById('sample'), document.getElementById('status'), { distance: 20 });
 	</script>
 
 </body>
