@@ -213,6 +213,7 @@ function benchmark(text, time) {
 	
     function SampleHandler(dragElement, dragArea, statusElement, options) {
 		this.dragElement = dragElement;
+		this.dragArea = dragArea;
 		this.statusElement = statusElement;
     }
     (function () {
@@ -243,7 +244,6 @@ function benchmark(text, time) {
 
 			return pageY;
 		}
-		
 		function setStatus(element) {
 			var text = 'Status: ';
 			for (var i = 1; i<arguments.length; i++) {
@@ -251,6 +251,23 @@ function benchmark(text, time) {
 			}
 			element.innerHTML = text;
 		}
+        function elementStyleProperty(element, prop) {
+            if (window.getComputedStyle) {
+                return window.getComputedStyle(element, "").getPropertyValue(prop);
+            } else { // http://stackoverflow.com/questions/21797258/getcomputedstyle-like-javascript-function-for-ie8
+                var re = /(\-([a-z]){1})/g;
+                if (prop == 'float') prop = 'styleFloat';
+                if (re.test(prop)) {
+                    prop = prop.replace(re, function () {
+                        return arguments[2].toUpperCase();
+                    });
+                }
+                return element.currentStyle[prop]
+            }
+        };
+		function numericProperty(prop) {
+            return (typeof prop == 'undefined' || prop == '' || prop == null) ? 0 : parseInt(prop);
+        };
 		
 		// public functions
 		
@@ -263,14 +280,68 @@ function benchmark(text, time) {
 		// the overriden placeholder methods
 		
 		SampleHandler.prototype._mousePrepareClick = function () {
-			setStatus(this.statusElement, '_mousePrepareClick', '2. line', '3rd line');
-			DEBUG && log('DragSortHandler _mousePrepareClick');
+			setStatus(this.statusElement, 'action: _mousePrepareClick and _mousePrepareDrag');
 		};
-		SampleHandler.prototype._mousePrepareDrag = function () {DEBUG && log('DragSortHandler _mousePrepareDrag');};
-		SampleHandler.prototype._mouseDrag = function (event) {DEBUG && log('DragSortHandler x:' + eventPageX(event) + ' y:' + eventPageY(event) + ' _mouseDownEvent.x:' + eventPageX(this._mouseDownEvent) + ' _mouseDownEvent.y:' + eventPageY(this._mouseDownEvent));//DEBUG && log(this._mouseDownEvent);
+		SampleHandler.prototype._mousePrepareDrag = function (event) {
+			var posDragArea = getOffsetRect(this.dragArea),
+				posDragElement = getOffsetRect(this.dragElement),
+				pageX = eventPageX(event),
+				pageY = eventPageY(event);
+
+			// event boundaries
+			this.xMin = posDragArea.left+pageX-posDragElement.left;
+			this.yMin = posDragArea.top+pageY-posDragElement.top;
+			this.xMax = posDragArea.left+pageX-posDragElement.left+numericProperty(elementStyleProperty(this.dragArea, 'width'))-numericProperty(elementStyleProperty(this.dragElement, 'width'));
+			this.yMax = posDragArea.top+pageY-posDragElement.top+numericProperty(elementStyleProperty(this.dragArea, 'height'))-numericProperty(elementStyleProperty(this.dragElement, 'height'));
+		
+			setStatus(this.statusElement, 'action: _mousePrepareClick and _mousePrepareDrag', 'xMin: ' + this.xMin + ' xMax: ' + this.xMax, 
+										  'yMin: ' + this.yMin + ' yMax: ' + this.yMax, 'posDragArea.left ' + posDragArea.left + ' posDragArea.top: ' + posDragArea.top, 
+										  'posDragElement.left ' + posDragElement.left + ' posDragElement.top: ' + posDragElement.top, 'pageX: ' + pageX + ' pageY: ' + pageY);
+		};
+		SampleHandler.prototype._mouseDrag = function (event) {
+			var pageX = eventPageX(event),
+				pageY = eventPageY(event);
+				
+			if (pageX < this.xMin) { // left boundary
+				this.dragElement.style.left = 0 + 'px';
+			} else if (this.xMax < pageX) { // right boundary
+				this.dragElement.style.left = numericProperty(elementStyleProperty(this.dragArea, 'width'))-numericProperty(elementStyleProperty(this.dragElement, 'width')) + 'px';
+			} else { // within drag area
+				var xMove = pageX - eventPageX(this._mouseDownEvent),
+					left = numericProperty(elementStyleProperty(this.dragElement, 'left')) + xMove;
+					
+				this.dragElement.style.left = left + 'px';
+			}
+			
+			if (pageY < this.yMin) { // top boundary
+				this.dragElement.style.top = 0 + 'px';
+			} else if (this.yMax < pageY) { // lower boundary
+				this.dragElement.style.top = numericProperty(elementStyleProperty(this.dragArea, 'height'))-numericProperty(elementStyleProperty(this.dragElement, 'height')) + 'px';
+			} else { // within drag area
+				var yMove = pageY - eventPageY(this._mouseDownEvent),
+					top = numericProperty(elementStyleProperty(this.dragElement, 'top')) + yMove;
+					
+				this.dragElement.style.top = top + 'px';
+			}
+			
+			if (!event.which) { // detect ie8
+				var copy = {};
+				for (var attr in event) {
+					copy[attr] = event[attr];
+				}
+				this._mouseDownEvent = copy;
+			} else {
+				this._mouseDownEvent = event;
+			}
+			
+			setStatus(this.statusElement, 'action: _mouseDrag', 'left: ' + this.dragElement.style.left, 'top: ' + this.dragElement.style.top);
 		}
-		SampleHandler.prototype._mouseStopClick = function () {DEBUG && log('DragSortHandler _mouseStopClick');};
-		SampleHandler.prototype._mouseStopDrag = function () {DEBUG && log('DragSortHandler _mouseStopDrag');};
+		SampleHandler.prototype._mouseStopClick = function () {
+			setStatus(this.statusElement, 'action: _mouseStopClick');
+		};
+		SampleHandler.prototype._mouseStopDrag = function () {
+			setStatus(this.statusElement, 'action: _mouseStopDrag');
+		};
 	})();
 
 	
@@ -299,6 +370,29 @@ function benchmark(text, time) {
     }
     
     // polyfills and public code snippets
+
+    // http://javascript.info/tutorial/coordinates
+    function getOffsetRect(elem) {
+        // (1)
+        var box = elem.getBoundingClientRect();
+
+        var body = document.body;
+        var docElem = document.documentElement;
+
+        // (2)
+        var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+        var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+
+        // (3)
+        var clientTop = docElem.clientTop || body.clientTop || 0;
+        var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+
+        // (4)
+        var top = box.top + scrollTop - clientTop;
+        var left = box.left + scrollLeft - clientLeft;
+
+        return { top: Math.round(top), left: Math.round(left) };
+    }
 
     // http://ejohn.org/apps/jselect/event.html
     function addEvent(obj, type, fn) {
