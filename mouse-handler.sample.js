@@ -95,9 +95,8 @@ function benchmark(text, time) {
             }
             
             // lets start and check distance first
-            if (this._mouseDistanceMet(event, event)) {
-				// only relevant if distance = 0
-				this._mouseStarted = (this._mousePrepareClick(event) !== false) && (this._mousePrepareDrag(event) !== false);
+            if (this.options.distance == 0) {
+				this._mouseStarted = this._mousePrepareDrag(event) !== false;
 				if (!this._mouseStarted) {
 					// ie8 support
 					
@@ -106,7 +105,9 @@ function benchmark(text, time) {
 					
 					return true;
                 }
-            }
+            } else { // 
+				this._mousePrepareClick(event);
+			}
 
             // to keep context
             var _this = this;
@@ -140,8 +141,8 @@ function benchmark(text, time) {
                 this._mouseDrag(event);
                 
 				// ie8 support
-			(event.preventDefault ? event.preventDefault() : (event.returnValue=false));
-			(event.stopPropagation ? event.stopPropagation() : (event.cancelBubble=true));
+				(event.preventDefault ? event.preventDefault() : (event.returnValue=false));
+				(event.stopPropagation ? event.stopPropagation() : (event.cancelBubble=true));
 
                 return false;
             }
@@ -149,8 +150,8 @@ function benchmark(text, time) {
             // check distance (no action circle)
             if (this._mouseDistanceMet(event, this._mouseDownEvent)) {
 				// lets start
-                this._mouseStarted = (this._mousePrepareClick(this._mouseDownEvent, event) !== false) && (this._mousePrepareDrag(this._mouseDownEvent, event) !== false);
-				// and move of stop
+                this._mouseStarted = (this._mousePrepareDrag(this._mouseDownEvent, event) !== false);
+				// and move or stop
                 (this._mouseStarted ? this._mouseDrag(event) : this._mouseUp(event));
             }
 
@@ -170,9 +171,10 @@ function benchmark(text, time) {
             if (this._mouseStarted) {
                 this._mouseStarted = false;
 
-                this._mouseStopClick(event);
 				this._mouseStopDrag(event);
-            }
+            } else {
+				this._mouseExecuteClick(event);
+			}
 
 			// ie8 support
 			(event.preventDefault ? event.preventDefault() : (event.returnValue=false));
@@ -191,7 +193,7 @@ function benchmark(text, time) {
 		function _mousePrepareDrag() {DEBUG && log('MouseHandler _mousePrepareDrag');}
         function _mouseDrag(event) {DEBUG && log('MouseHandler x:' + eventPageX(event) + ' y:' + eventPageY(event) + ' _mouseDownEvent.x:' + eventPageX(this._mouseDownEvent) + ' _mouseDownEvent.y:' + eventPageY(this._mouseDownEvent));//DEBUG && log(this._mouseDownEvent);
 		}
-        function _mouseStopClick() {DEBUG && log('MouseHandler _mouseStopClick');}
+        function _mouseExecuteClick() {DEBUG && log('MouseHandler _mouseExecuteClick');}
 		function _mouseStopDrag() {DEBUG && log('MouseHandler _mouseStopDrag');}
 		
 		return {
@@ -206,7 +208,7 @@ function benchmark(text, time) {
 			_mousePrepareClick: _mousePrepareClick,
 			_mousePrepareDrag: _mousePrepareDrag,
 			_mouseDrag: _mouseDrag,
-			_mouseStopClick: _mouseStopClick,
+			_mouseExecuteClick: _mouseExecuteClick,
 			_mouseStopDrag: _mouseStopDrag
 		};
 	})();
@@ -215,6 +217,11 @@ function benchmark(text, time) {
 		this.dragElement = dragElement;
 		this.dragArea = dragArea;
 		this.statusElement = statusElement;
+		
+		//set options
+		this.options.distance = options.distance;
+		
+		this._init();
     }
     (function () {
 		SampleHandler.prototype = new MouseHandler();
@@ -275,12 +282,42 @@ function benchmark(text, time) {
 		
 		// private functions
 		
-		SampleHandler.prototype._init = function () { };
+		SampleHandler.prototype._init = function () {
+			var posDragArea = getOffsetRect(this.dragArea),
+				posDragElement = getOffsetRect(this.dragElement);
+			
+			var canvas = document.getElementById('canvas');
+			if (canvas.getContext){
+				var ctx = canvas.getContext('2d');
+				
+				ctx.beginPath();
+				ctx.lineWidth='1';
+				ctx.strokeStyle='#999999';
+				ctx.rect(posDragElement.left-posDragArea.left,posDragElement.top-posDragArea.top,this.dragElement.offsetWidth,this.dragElement.offsetHeight); 
+				ctx.stroke();
+			}
+		};
 		
 		// the overriden placeholder methods
 		
 		SampleHandler.prototype._mousePrepareClick = function () {
-			setStatus(this.statusElement, 'action: _mousePrepareClick and _mousePrepareDrag');
+			this.dragElement.style.backgroundColor = 'white';
+			
+			var posDragArea = getOffsetRect(this.dragArea),
+				pageX = eventPageX(event),
+				pageY = eventPageY(event);
+			
+			var canvas = document.getElementById('canvas');
+			if (canvas.getContext){
+				var ctx = canvas.getContext('2d');
+				
+				ctx.beginPath();
+				ctx.strokeStyle='blue';
+				ctx.arc(pageX-posDragArea.left,pageY-posDragArea.top,this.options.distance,0,Math.PI*2,true);
+				ctx.stroke();
+			}
+		
+			setStatus(this.statusElement, 'action: _mousePrepareClick');
 		};
 		SampleHandler.prototype._mousePrepareDrag = function (event) {
 			var posDragArea = getOffsetRect(this.dragArea),
@@ -291,12 +328,12 @@ function benchmark(text, time) {
 			// event boundaries
 			this.xMin = posDragArea.left+pageX-posDragElement.left;
 			this.yMin = posDragArea.top+pageY-posDragElement.top;
-			this.xMax = posDragArea.left+pageX-posDragElement.left+numericProperty(elementStyleProperty(this.dragArea, 'width'))-numericProperty(elementStyleProperty(this.dragElement, 'width'));
-			this.yMax = posDragArea.top+pageY-posDragElement.top+numericProperty(elementStyleProperty(this.dragArea, 'height'))-numericProperty(elementStyleProperty(this.dragElement, 'height'));
+			this.xMax = posDragArea.left+pageX-posDragElement.left+this.dragArea.offsetWidth-this.dragElement.offsetWidth;
+			this.yMax = posDragArea.top+pageY-posDragElement.top+this.dragArea.offsetHeight-this.dragElement.offsetHeight;
 		
-			setStatus(this.statusElement, 'action: _mousePrepareClick and _mousePrepareDrag', 'xMin: ' + this.xMin + ' xMax: ' + this.xMax, 
-										  'yMin: ' + this.yMin + ' yMax: ' + this.yMax, 'posDragArea.left ' + posDragArea.left + ' posDragArea.top: ' + posDragArea.top, 
-										  'posDragElement.left ' + posDragElement.left + ' posDragElement.top: ' + posDragElement.top, 'pageX: ' + pageX + ' pageY: ' + pageY);
+			setStatus(this.statusElement, 'action: _mousePrepareDrag',
+										  'xMin: ' + this.xMin + ' xMax: ' + this.xMax, 'yMin: ' + this.yMin + ' yMax: ' + this.yMax,
+										  'pageX: ' + pageX + ' pageY: ' + pageY);
 		};
 		SampleHandler.prototype._mouseDrag = function (event) {
 			var pageX = eventPageX(event),
@@ -305,7 +342,7 @@ function benchmark(text, time) {
 			if (pageX < this.xMin) { // left boundary
 				this.dragElement.style.left = 0 + 'px';
 			} else if (this.xMax < pageX) { // right boundary
-				this.dragElement.style.left = numericProperty(elementStyleProperty(this.dragArea, 'width'))-numericProperty(elementStyleProperty(this.dragElement, 'width')) + 'px';
+				this.dragElement.style.left = this.dragArea.offsetWidth-this.dragElement.offsetWidth + 'px';
 			} else { // within drag area
 				var xMove = pageX - eventPageX(this._mouseDownEvent),
 					left = numericProperty(elementStyleProperty(this.dragElement, 'left')) + xMove;
@@ -316,7 +353,7 @@ function benchmark(text, time) {
 			if (pageY < this.yMin) { // top boundary
 				this.dragElement.style.top = 0 + 'px';
 			} else if (this.yMax < pageY) { // lower boundary
-				this.dragElement.style.top = numericProperty(elementStyleProperty(this.dragArea, 'height'))-numericProperty(elementStyleProperty(this.dragElement, 'height')) + 'px';
+				this.dragElement.style.top = this.dragArea.offsetHeight-this.dragElement.offsetHeight + 'px';
 			} else { // within drag area
 				var yMove = pageY - eventPageY(this._mouseDownEvent),
 					top = numericProperty(elementStyleProperty(this.dragElement, 'top')) + yMove;
@@ -334,10 +371,26 @@ function benchmark(text, time) {
 				this._mouseDownEvent = event;
 			}
 			
-			setStatus(this.statusElement, 'action: _mouseDrag', 'left: ' + this.dragElement.style.left, 'top: ' + this.dragElement.style.top);
+			var posDragArea = getOffsetRect(this.dragArea);
+			var canvas = document.getElementById('canvas');
+			if (canvas.getContext){
+				var ctx = canvas.getContext('2d');
+				
+				ctx.fillRect(pageX-posDragArea.left,pageY-posDragArea.top,1,1);
+			}
+			
+			setStatus(this.statusElement, 'action: _mouseDrag',
+										  'xMin: ' + this.xMin + ' xMax: ' + this.xMax, 'yMin: ' + this.yMin + ' yMax: ' + this.yMax,
+										  'pageX: ' + pageX + ' pageY: ' + pageY);
 		}
-		SampleHandler.prototype._mouseStopClick = function () {
-			setStatus(this.statusElement, 'action: _mouseStopClick');
+		SampleHandler.prototype._mouseExecuteClick = function () {
+			var value = Math.random() * 0xFF | 0;
+			var grayscale = (value << 16) | (value << 8) | value;
+			var color = '#' + grayscale.toString(16);
+			
+			this.dragElement.style.backgroundColor = color;
+		
+			setStatus(this.statusElement, 'action: _mouseExecuteClick');
 		};
 		SampleHandler.prototype._mouseStopDrag = function () {
 			setStatus(this.statusElement, 'action: _mouseStopDrag');

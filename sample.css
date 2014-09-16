@@ -9,13 +9,13 @@
 .drag {
 	border: 1px solid #999999;
 	height: 60px;
-	width: 200px;
+	width: 170px;
 	position: relative;
 	left: 20px;
 	top: 20px;
 	padding: 10px;
 }
 
-.status {
-	padding-top: 20px;
+.margin {
+	margin-bottom: 20px;
 }
