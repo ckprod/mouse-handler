@@ -400,14 +400,14 @@ function benchmark(text, time) {
 	
     function SampleDragClick(dragElement, dragArea, statusElement, options) {
 
-        var dragSortHandler = new SampleHandler(dragElement, dragArea, statusElement, options);
+        var sampleHandler = new SampleHandler(dragElement, dragArea, statusElement, options);
 		
         // to keep context
         var that = this;
 		
         // attach handlers
         addEvent(dragElement, 'mousedown', function (event) {
-            dragSortHandler._mouseDown(event);
+            sampleHandler._mouseDown(event);
         });
     }
 	
