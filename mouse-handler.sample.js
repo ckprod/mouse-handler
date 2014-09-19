@@ -105,7 +105,7 @@ function benchmark(text, time) {
 					
 					return true;
                 }
-            } else { // 
+            } else {
 				this._mousePrepareClick(event);
 			}
 

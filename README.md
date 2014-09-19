@@ -67,6 +67,14 @@ addEvent(element, 'mousedown', function (event) {
 });
 ```
 
+###Supported browsers
+
+- Internet Explorer 8 and newer
+- Opera
+- Chrome
+- Firefox
+- Safari 5.1.7 (and highly possible newer)
+
 ###References
 
 This small javascript component uses or is based on other javascript projects and code snippets:

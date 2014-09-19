@@ -87,7 +87,7 @@
 					
 					return true;
                 }
-            } else { // 
+            } else {
 				this._mousePrepareClick(event);
 			}
 
