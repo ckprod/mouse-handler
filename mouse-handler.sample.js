@@ -189,12 +189,11 @@ function benchmark(text, time) {
 		}
 
         // These are placeholder methods, to be overriden by extentions
-        function _mousePrepareClick() {DEBUG && log('MouseHandler _mousePrepareClick');}
-		function _mousePrepareDrag() {DEBUG && log('MouseHandler _mousePrepareDrag');}
-        function _mouseDrag(event) {DEBUG && log('MouseHandler x:' + eventPageX(event) + ' y:' + eventPageY(event) + ' _mouseDownEvent.x:' + eventPageX(this._mouseDownEvent) + ' _mouseDownEvent.y:' + eventPageY(this._mouseDownEvent));//DEBUG && log(this._mouseDownEvent);
-		}
-        function _mouseExecuteClick() {DEBUG && log('MouseHandler _mouseExecuteClick');}
-		function _mouseStopDrag() {DEBUG && log('MouseHandler _mouseStopDrag');}
+        function _mousePrepareClick() {}
+		function _mousePrepareDrag() {}
+        function _mouseDrag() {}
+        function _mouseExecuteClick() {}
+		function _mouseStopDrag() {}
 		
 		return {
 			constructor: MouseHandler,
@@ -306,7 +305,7 @@ function benchmark(text, time) {
 		
 		// the overriden placeholder methods
 		
-		SampleHandler.prototype._mousePrepareClick = function () {
+		SampleHandler.prototype._mousePrepareClick = function (event) {
 			this.dragElement.style.backgroundColor = 'white';
 			
 			var posDragArea = getOffsetRect(this.dragArea),
