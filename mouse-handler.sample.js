@@ -218,8 +218,14 @@ function benchmark(text, time) {
 		this.dragArea = dragArea;
 		this.statusElement = statusElement;
 		
-		//set options
-		this.options.distance = options.distance;
+		//set other default options
+		//this.options.*** = ***;
+		
+        // set options
+		var newOptions = {};
+        for (var opt in this.options)
+			newOptions[opt] = options[opt] || this.options[opt];
+		this.options = newOptions;
 		
 		this._init();
     }
@@ -413,9 +419,6 @@ function benchmark(text, time) {
 	
     // export
     
-    // based on
-    // https://github.com/tristen/tablesort/blob/gh-pages/src/tablesort.js
-    // line 297 - 301
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = SampleDragClick;
     } else {
