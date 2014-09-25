@@ -197,8 +197,14 @@
 	// constructor
     function SampleHandler(/* arguments, */ options) {
 		
-		//set options
-		this.options.distance = options.distance;
+		//set other default options
+		//this.options.*** = ***;
+		
+        // set options
+		var newOptions = {};
+        for (var opt in this.options)
+			newOptions[opt] = options[opt] || this.options[opt];
+		this.options = newOptions;
 		
 		//this._init();
     }
@@ -229,9 +235,6 @@
 
         var sampleHandler = new SampleHandler(/* arguments, */ options);
 		
-        // to keep context
-        var that = this;
-		
         // attach handlers
         addEvent(dragElement, 'mousedown', function (event) {
             sampleHandler._mouseDown(event);
@@ -240,9 +243,6 @@
 	
     // export
     
-    // based on
-    // https://github.com/tristen/tablesort/blob/gh-pages/src/tablesort.js
-    // line 297 - 301
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = SampleDragClick;
     } else {
