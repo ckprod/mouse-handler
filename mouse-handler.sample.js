@@ -204,7 +204,7 @@
         // set options
 		var newOptions = {};
         for (var opt in this.options)
-			newOptions[opt] = options[opt] || this.options[opt];
+			newOptions[opt] = options[opt] === 'undefined' ?  this.options[opt] : options[opt];
 		this.options = newOptions;
 		
 		this._init();
@@ -386,7 +386,7 @@
 	
     function SampleDragClick(dragElement, dragArea, statusElement, options) {
 
-        var sampleHandler = new SampleHandler(dragElement, dragArea, statusElement, options);
+        var sampleHandler = new SampleHandler(dragElement, dragArea, statusElement, options || {});
 		
         // attach handlers
         addEvent(dragElement, 'mousedown', function (event) {
