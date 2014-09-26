@@ -83,6 +83,8 @@ addEvent(element, 'mousedown', function (event) {
 This small javascript component uses or is based on other javascript projects and code snippets:
 
 - [mouse.js by jQuery](https://github.com/jquery/jquery-ui/blob/master/ui/mouse.js)
+- [addEvent() recoding contest entry](http://ejohn.org/apps/jselect/event.html)
+- [Coordinates from javascript.info](http://javascript.info/tutorial/coordinates)
 
 ### Licence
 
