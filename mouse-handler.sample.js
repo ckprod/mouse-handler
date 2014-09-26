@@ -1,23 +1,4 @@
-;
-if (typeof DEBUG === "undefined") DEBUG = true;
-
-// debugging utils
-function log() {
-    var a = arguments[0],
-                    s = arguments.length > 1 ? Array.prototype.slice.call(arguments) : a;
-
-    if (typeof console !== "undefined" && typeof console.log !== "undefined") {
-        console[/error/i.test(a) ? 'error' : /warn/i.test(a) ? 'warn' : 'log'](s);
-    } else {
-        alert(s);
-    }
-}
-
-function benchmark(text, time) {
-    log(text + " (" + (new Date().getTime() - time.getTime()) + "ms)");
-}
-
-(function () {
+;(function () {
     "use strict";
 
 	// template for left mouse button actions: click vs drag
@@ -223,7 +204,7 @@ function benchmark(text, time) {
         // set options
 		var newOptions = {};
         for (var opt in this.options)
-			newOptions[opt] = options[opt] === 'undefined' ?  this.options[opt] : options[opt];
+			newOptions[opt] = (typeof options[opt] == 'undefined') ?  this.options[opt] : options[opt];
 		this.options = newOptions;
 		
 		this._init();
@@ -406,9 +387,6 @@ function benchmark(text, time) {
     function SampleDragClick(dragElement, dragArea, statusElement, options) {
 
         var sampleHandler = new SampleHandler(dragElement, dragArea, statusElement, options || {});
-		
-        // to keep context
-        var that = this;
 		
         // attach handlers
         addEvent(dragElement, 'mousedown', function (event) {
