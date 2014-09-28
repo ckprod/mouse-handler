@@ -5,7 +5,7 @@ Base class to distinguish between left mouse button actions: click vs. drag
 
 ###Samples
 
-See [here](http://irhc.github.io/mouse-handler) for a basic sample how one can use the mouse handler template to distinguish between drag and click actions. The associated javascript file is mouse-handler.sample.js.
+See [here](http://irhc.github.io/mouse-handler) for a basic sample which shows how to use the mouse handler template to distinguish between drag and click actions. The associated javascript file is mouse-handler.sample.js.
 
 More sophisticated samples are:
 
@@ -15,7 +15,7 @@ More sophisticated samples are:
 
 ###Description
 
-mouse-handler is a small javascript component which can be used as base class for mouse actions. Its main purpose is to distinguish between drag and click actions. If the left mouse button is pressed (and still hold) and the mouse movement is within the "no drag"-circle it is still in the click case, otherwise (movement beyound circle) the drag case is triggered. The following functions are available for overriding:
+mouse-handler is a small javascript component which can be used as base class for mouse actions. Its main purpose is to distinguish between drag and click actions. If the left mouse button is pressed (and still held) and the mouse movement is within the "no drag"-circle, it is still in the click case. Otherwise (movement beyond circle) the drag case is triggered. The following functions are available for overriding:
 
 - _mousePrepareClick: called on left mouse button down
 - _mousePrepareDrag: called on triggering the drag case
